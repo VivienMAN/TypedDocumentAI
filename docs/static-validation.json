@@ -1,0 +1,98 @@
+{
+  "delivery_date": "2026-10-02",
+  "version": "2.0.0-preview.1",
+  "status": "source_structural_checks_passed_only",
+  "checks": [
+    {
+      "name": "repository_structure",
+      "status": "pass",
+      "expected_exit_code": 0,
+      "actual_exit_code": 0,
+      "stdout": "Repository structure OK: 7 projects; 21 library source files.\nAuthored xUnit inventory: 83 facts, 10 theories, 41 inline-data rows. NOT EXECUTED.\nNo C# compilation, package restore, vulnerability audit or live API test was performed by this checker.",
+      "stderr": ""
+    },
+    {
+      "name": "valid_release_tag",
+      "status": "pass",
+      "expected_exit_code": 0,
+      "actual_exit_code": 0,
+      "stdout": "Validated release tag: v2.0.0-preview.1",
+      "stderr": ""
+    },
+    {
+      "name": "invalid_release_tag_is_rejected",
+      "status": "pass",
+      "actual_exit_code": 1,
+      "stderr": "Release tag must exactly equal v2.0.0-preview.1."
+    },
+    {
+      "name": "verify_explicitly_fails_without_dotnet",
+      "status": "pass",
+      "expected_exit_code": 2,
+      "actual_exit_code": 2,
+      "stdout": "+ /opt/pyvenv/bin/python tools/check_repository.py\nRepository structure OK: 7 projects; 21 library source files.\nAuthored xUnit inventory: 83 facts, 10 theories, 41 inline-data rows. NOT EXECUTED.\nNo C# compilation, package restore, vulnerability audit or live API test was performed by this checker.",
+      "stderr": "ERROR: .NET SDK 10 is required. No compilation, C# tests or packaging were performed."
+    },
+    {
+      "name": "shell_syntax",
+      "status": "pass",
+      "expected_exit_code": 0,
+      "actual_exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "python_script_syntax",
+      "status": "pass",
+      "files": 4
+    },
+    {
+      "name": "xml_syntax",
+      "status": "pass",
+      "files": 11
+    },
+    {
+      "name": "yaml_syntax_and_basic_workflow_shape",
+      "status": "pass",
+      "files": 7,
+      "limitation": "This is YAML parsing, not GitHub Actions execution or actionlint."
+    },
+    {
+      "name": "json_syntax",
+      "status": "pass"
+    },
+    {
+      "name": "synthetic_invoice_png_integrity",
+      "status": "pass"
+    },
+    {
+      "name": "private_repository_names_and_obvious_key_patterns",
+      "status": "pass",
+      "limitation": "Heuristic scan, not a full secret scanner or a legal/provenance audit."
+    }
+  ],
+  "inventory": {
+    "projects": 7,
+    "library_csharp_files": 21,
+    "library_csharp_lines": 1784,
+    "xunit_fact_methods_authored": 83,
+    "xunit_theory_methods_authored": 10,
+    "inline_data_rows_authored": 41
+  },
+  "not_performed": [
+    "dotnet restore",
+    "C# compilation or semantic validation",
+    "xUnit execution",
+    "coverage measurement",
+    "NuGet dependency vulnerability audit",
+    "dotnet pack",
+    "live Mistral API call",
+    "live OpenAI API call",
+    "GitHub Actions execution"
+  ],
+  "dotnet_executed": false,
+  "live_api_executed": false,
+  "dotnet_sdk_available": false,
+  "reason": "No .NET SDK/runtime/compiler installed; external SDK download unavailable in delivery environment.",
+  "next_verification_command": "python tools/verify.py"
+}

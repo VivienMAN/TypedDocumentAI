@@ -1,0 +1,41 @@
+name: Manual paid provider smoke test
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: Provider to call with the synthetic invoice (charges may apply)
+        type: choice
+        options: [mistral, openai]
+        required: true
+      confirm_paid_request:
+        description: I authorize sending the synthetic fixture to the selected provider and paying API charges
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+jobs:
+  smoke:
+    if: inputs.confirm_paid_request && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: live-tests
+    env:
+      PROVIDER: ${{ inputs.provider }}
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Build sample without exposing provider secrets
+        run: dotnet build samples/InvoiceConsole/InvoiceConsole.csproj -c Release
+      - name: Extract synthetic invoice
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: >-
+          dotnet run --no-build --no-restore --project samples/InvoiceConsole -c Release --
+          "$PROVIDER" samples/InvoiceConsole/Fixtures/invoice.png extract --live

@@ -1,0 +1,54 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomProviderDemo", "samples\CustomProviderDemo\CustomProviderDemo.csproj", "{9422EDAF-ECDC-54E3-AB1F-E23E43358018}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoiceConsole", "samples\InvoiceConsole\InvoiceConsole.csproj", "{EC6957C3-AE75-5DE2-80E2-629F690FEDCC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypedDocumentAI.Abstractions", "src\TypedDocumentAI.Abstractions\TypedDocumentAI.Abstractions.csproj", "{071733DE-78A7-5B62-88B5-DBDB6F5CEFFC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypedDocumentAI.Core", "src\TypedDocumentAI.Core\TypedDocumentAI.Core.csproj", "{7CC3F601-8FFD-5BB5-8619-DDFE318C004F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypedDocumentAI.Mistral", "src\TypedDocumentAI.Mistral\TypedDocumentAI.Mistral.csproj", "{ECDA5962-819F-5E1F-899A-F6668DF7DE90}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypedDocumentAI.OpenAI", "src\TypedDocumentAI.OpenAI\TypedDocumentAI.OpenAI.csproj", "{A3776DF3-B6CE-586C-A874-75C3CFD1C7CB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypedDocumentAI.Tests", "tests\TypedDocumentAI.Tests\TypedDocumentAI.Tests.csproj", "{9A045CAE-A91D-588B-A14F-0719724E074E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9422EDAF-ECDC-54E3-AB1F-E23E43358018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9422EDAF-ECDC-54E3-AB1F-E23E43358018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9422EDAF-ECDC-54E3-AB1F-E23E43358018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9422EDAF-ECDC-54E3-AB1F-E23E43358018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC6957C3-AE75-5DE2-80E2-629F690FEDCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC6957C3-AE75-5DE2-80E2-629F690FEDCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC6957C3-AE75-5DE2-80E2-629F690FEDCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC6957C3-AE75-5DE2-80E2-629F690FEDCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{071733DE-78A7-5B62-88B5-DBDB6F5CEFFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{071733DE-78A7-5B62-88B5-DBDB6F5CEFFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{071733DE-78A7-5B62-88B5-DBDB6F5CEFFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{071733DE-78A7-5B62-88B5-DBDB6F5CEFFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CC3F601-8FFD-5BB5-8619-DDFE318C004F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CC3F601-8FFD-5BB5-8619-DDFE318C004F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CC3F601-8FFD-5BB5-8619-DDFE318C004F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CC3F601-8FFD-5BB5-8619-DDFE318C004F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECDA5962-819F-5E1F-899A-F6668DF7DE90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECDA5962-819F-5E1F-899A-F6668DF7DE90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECDA5962-819F-5E1F-899A-F6668DF7DE90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECDA5962-819F-5E1F-899A-F6668DF7DE90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3776DF3-B6CE-586C-A874-75C3CFD1C7CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3776DF3-B6CE-586C-A874-75C3CFD1C7CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3776DF3-B6CE-586C-A874-75C3CFD1C7CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3776DF3-B6CE-586C-A874-75C3CFD1C7CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A045CAE-A91D-588B-A14F-0719724E074E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A045CAE-A91D-588B-A14F-0719724E074E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A045CAE-A91D-588B-A14F-0719724E074E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A045CAE-A91D-588B-A14F-0719724E074E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

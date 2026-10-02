@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>TypedDocumentAI.OpenAI</PackageId>
+    <Description>OpenAI multimodal document transcription and typed extraction provider for TypedDocumentAI.</Description>
+    <PackageTags>ocr;document-ai;structured-extraction;json-schema;dotnet</PackageTags>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TypedDocumentAI.Core/TypedDocumentAI.Core.csproj" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

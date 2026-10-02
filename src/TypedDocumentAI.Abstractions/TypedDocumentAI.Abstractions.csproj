@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>TypedDocumentAI.Abstractions</PackageId>
+    <Description>Provider-neutral document inputs, OCR results, and extraction contracts.</Description>
+    <PackageTags>ocr;document-ai;structured-extraction;json-schema;dotnet</PackageTags>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

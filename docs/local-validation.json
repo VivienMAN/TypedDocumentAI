@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-02",
+  "initial_release_version": "1.0.0",
+  "os": "Ubuntu 24.04",
+  "sdk": "10.0.112",
+  "runtime": "10.0.12",
+  "dotnet_build": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0
+  },
+  "xunit": {
+    "passed": 124,
+    "failed": 0,
+    "skipped": 0
+  },
+  "automation_tests": {
+    "passed": 11
+  },
+  "package_count": 4,
+  "symbol_package_count": 4,
+  "version_override_verified": "1.0.1",
+  "local_feed_consumer_passed": true,
+  "workflow_linter": "actionlint 1.7.12",
+  "github_actions_executed": false,
+  "nuget_published": false,
+  "live_provider_calls": false
+}

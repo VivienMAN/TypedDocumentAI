@@ -1,0 +1,85 @@
+name: Publish NuGet
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version increment (first publication is always 1.0.0)
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      resume_tag:
+        description: Optional incomplete release to resume (e.g. v1.0.0); ignores bump
+        type: string
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: nuget-publish
+  cancel-in-progress: false
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      source_sha: ${{ steps.plan.outputs.source_sha }}
+      completed: ${{ steps.plan.outputs.completed }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Select or resume version
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUGET_USER: ${{ vars.NUGET_USER }}
+          BUMP: ${{ inputs.bump }}
+          RESUME_TAG: ${{ inputs.resume_tag }}
+        run: python tools/release.py plan --bump "$BUMP" --resume-tag "$RESUME_TAG"
+  verify:
+    needs: plan
+    if: needs.plan.outputs.completed != 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      source_sha: ${{ needs.plan.outputs.source_sha }}
+  publish:
+    needs: [plan, verify]
+    if: needs.plan.outputs.completed != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    environment: nuget
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
+      SOURCE_SHA: ${{ needs.plan.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.source_sha }}
+      - uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Download verified Linux packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: verification-ubuntu-latest
+          path: artifacts/
+      - name: NuGet login with Trusted Publishing
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.0.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+      - name: Reserve tag and save release bundle
+        run: python tools/release.py prepare --version "$PACKAGE_VERSION" --source-sha "$SOURCE_SHA"
+      - name: Publish saved packages, verify availability and publish release
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: python tools/release.py publish --version "$PACKAGE_VERSION" --source-sha "$SOURCE_SHA"
