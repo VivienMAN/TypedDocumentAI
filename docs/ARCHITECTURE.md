@@ -25,6 +25,12 @@ Providers know their wire formats, MIME support, model defaults and provider-spe
 
 Abstractions is dependency-free. Core carries Microsoft HTTP/DI infrastructure and the default schema engine. Local engines can implement the contracts without inheriting `HttpDocumentProvider`. Independent adapters can be added without editing Core or installing unrelated vendor libraries. There is no chat, embeddings, agents or general-purpose SDK surface in this repository.
 
+## API and implementation visibility
+
+Consumers use the published operation interfaces and result/options types. `HttpDocumentProvider` intentionally exposes a small protected contract to adapter subclasses in other assemblies; see [EXTENDING.md](EXTENDING.md). Other authored implementation methods are private. Schema generation, normalization and shape validation are parts of one partial `SystemTextJsonDocumentSchema` class rather than assembly-wide helper APIs.
+
+A reviewed public/protected reflection snapshot and a separate visibility regression guard accidental API expansion. They do not replace compatibility analysis or real provider integration tests.
+
 ## Lifetime and concurrency
 
 The client, schema cache and adapter registrations are singletons. Providers must be thread-safe. Built-in providers copy configuration when constructed, and per-call options are not written back into global settings. Mistral copies page selections before use. Do not mutate collection-valued options while a call is starting.

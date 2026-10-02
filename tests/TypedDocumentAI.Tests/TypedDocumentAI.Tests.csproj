@@ -4,6 +4,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="PublicAPI.txt" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../../src/TypedDocumentAI.Mistral/TypedDocumentAI.Mistral.csproj" />
     <ProjectReference Include="../../src/TypedDocumentAI.OpenAI/TypedDocumentAI.OpenAI.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />

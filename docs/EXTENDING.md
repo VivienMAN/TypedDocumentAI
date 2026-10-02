@@ -6,6 +6,8 @@ Implement `IOcrProvider` for text recognition/transcription, `IStructuredDocumen
 
 Do not implement structured extraction by throwing `NotImplementedException`. An OCR-only engine can simply omit that interface; the client reports the unsupported operation before invoking it. Raw text plus a later LLM extraction stage is a separate application pipeline, not an implicit responsibility of every OCR adapter.
 
+The [OfflineInvoiceDemo](../samples/OfflineInvoiceDemo/Program.cs) demonstrates typed extraction using a fixed synthetic JSON response and the real schema/client pipeline. It performs no inference or OCR.
+
 The runnable [CustomProviderDemo](../samples/CustomProviderDemo/Program.cs) is a complete offline `text/plain` decoder. It demonstrates registration and capability separation; it is not an OCR engine and does not pretend to process images.
 
 ```csharp
@@ -28,6 +30,10 @@ Keep failures safe. Do not attach raw provider bodies, annotations, secrets or d
 ## Optional HTTP base
 
 `TypedDocumentAI.Http.HttpDocumentProvider` supplies bounded JSON responses, safe errors, configuration snapshots, per-request authentication, timeouts and opt-in retries. Derive from it only for an HTTP JSON provider whose needs fit this model. Register its client through `AddDocumentHttpClient`, and select the name used in the base constructor.
+
+Its eight authored `protected` methods are supported extension points: `ValidateInput`, `ResolveModel`, `ToDataUri`, `SendJsonAsync`, `Require`, `OptionalString`, `OptionalCount` and `ParseAnnotation`. The protected constructor, `DefaultModel` and nested `ProviderHttpResult` support the same contract. They remain accessible to adapters in independent assemblies. Making these members private would break that extension model.
+
+Other implementation methods are private, including normalization and JSON shape checking in the default schema engine. The visibility regression test checks all four library assemblies, excluding compiler-generated record/async members and property accessors. The reviewed public/protected API snapshot also tracks those generated public members and accessors.
 
 This base deliberately does not implement an arbitrary provider protocol, multipart upload, polling, streaming results or cloud-specific signing. An adapter requiring those features can use its own transport while preserving the operation contracts.
 

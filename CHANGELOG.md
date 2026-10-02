@@ -6,7 +6,7 @@
 
 Four-package architecture with a provider-neutral client and independent Mistral and OpenAI adapters. Separate OCR and structured-extraction interfaces; capability discovery; explicit named routing; schema generation and strict local result checks; bounded input/response processing; safe errors, cancellation and deadline handling; opt-in POST retries; DI and content-free diagnostic activities.
 
-Offline contract tests, two console examples, synthetic invoice fixture, manual Linux/Windows CI, manual paid smoke workflow, OIDC NuGet publishing with automatic SemVer, tags/releases and resumable package uploads, package-content checks, migration/extension/operations documentation and MIT licensing.
+Offline contract tests, three console examples, synthetic invoice fixture, manual Linux/Windows CI, manual paid smoke workflow, OIDC NuGet publishing with automatic SemVer, tags/releases and resumable package uploads, package-specific NuGet READMEs and icon, compiled documentation quickstarts, public/protected API snapshot, private-method checks, package-content checks, migration/extension/operations documentation and MIT licensing.
 
 ### Breaking changes from the single-provider prototype
 
@@ -14,4 +14,4 @@ New package family/namespaces, input snapshot type, result wrapper and registrat
 
 ### Validation
 
-The first stable release is prepared but not yet published. Local Linux compilation, 124 offline C# tests, release automation regressions, restore/audit, package creation and local-feed installation passed. GitHub Actions, Windows tests and live provider calls have not run. See docs/VALIDATION.md for evidence and limits.
+The first stable release is prepared but not yet published. Local Linux compilation, 127 offline C# tests, release automation regressions, restore/audit, package creation and local-feed installation passed. GitHub Actions, Windows tests and live provider calls have not run. See docs/VALIDATION.md for evidence and limits.

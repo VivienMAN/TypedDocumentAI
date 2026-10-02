@@ -275,6 +275,26 @@ def push(path: Path, symbols: bool = False) -> subprocess.CompletedProcess:
     return subprocess.run(command, capture_output=True, text=True)
 
 
+def push_status(result: subprocess.CompletedProcess) -> int | None:
+    """Extract only known HTTP status codes. Never echo credential-bearing tool output."""
+    output = (result.stdout or '') + '\n' + (result.stderr or '')
+    match = re.search(r'(?i)(?:status code[^\d\n]*|HTTP(?:/\d(?:\.\d)?)?\s+)(400|401|403|409|422)\b', output)
+    return int(match.group(1)) if match else None
+
+
+def push_error(package: str, result: subprocess.CompletedProcess, symbols: bool = False) -> RuntimeError:
+    status = push_status(result)
+    target = 'symbols' if symbols else 'package'
+    if status in (401, 403):
+        guidance = 'Check the NuGet Trusted Publishing account, repository/workflow/environment policy and package permissions.'
+    elif status in (400, 422):
+        guidance = 'NuGet rejected the package; inspect package metadata and validation requirements.'
+    else:
+        guidance = 'Check NuGet service availability and resume the same saved release.'
+    code = f'HTTP {status}' if status is not None else f'exit {result.returncode}'
+    return RuntimeError(f'{package}: {target} upload failed ({code}). {guidance} The release remains a draft.')
+
+
 def publish(args) -> None:
     if not os.environ.get('NUGET_API_KEY'):
         raise ValueError('Missing short-lived NuGet credential.')
@@ -299,7 +319,9 @@ def publish(args) -> None:
         else:
             result = push(local)
             if result.returncode:
-                # A previously accepted package can still be undergoing indexing. Verify before skipping it.
+                # Poll conflicts inline; other failures require diagnosis before resuming.
+                if push_status(result) != 409:
+                    raise push_error(package, result)
                 for _ in range(60):
                     remote = remote_package(package, args.version)
                     if remote is not None:
@@ -307,10 +329,10 @@ def publish(args) -> None:
                         break
                     time.sleep(10)
                 else:
-                    raise RuntimeError(f'{package}: push failed; package could not be verified. Resume this release after checking NuGet status.')
+                    raise RuntimeError(f'{package}: NuGet conflict (HTTP 409), but saved content could not be verified. The release remains a draft; resume after indexing.')
         result = push(args.directory/f'{package}.{args.version}.snupkg', symbols=True)
         if result.returncode:
-            raise RuntimeError(f'{package}: symbol push failed. Resume the same release.')
+            raise push_error(package, result, symbols=True)
         print(f'{package}: package and symbols submitted.')
     # Accepted uploads are not proof of availability: wait for all packages to be indexed.
     deadline = time.monotonic()+1200

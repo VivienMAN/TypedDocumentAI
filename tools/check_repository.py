@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 import sys
+from urllib.parse import unquote, urlsplit
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +17,7 @@ def expect(condition: bool, message: str) -> None:
 
 def main() -> int:
     projects = sorted(ROOT.glob("src/**/*.csproj")) + sorted(ROOT.glob("tests/**/*.csproj")) + sorted(ROOT.glob("samples/**/*.csproj"))
-    expect(len(projects) == 7, "Expected four libraries, one test project and two sample projects.")
+    expect(len(projects) == 8, "Expected four libraries, one test project and three sample projects.")
     central = ET.parse(ROOT / "Directory.Packages.props")
     dependencies = {node.attrib["Include"]: node.attrib["Version"] for node in central.findall(".//PackageVersion")}
     expect(len(dependencies) == len(central.findall(".//PackageVersion")), "Duplicate centrally managed package.")
@@ -70,10 +71,18 @@ def main() -> int:
     for file in needed:
         expect((ROOT / file).is_file(), f"Missing repository file: {file}")
     # Relative documentation links must resolve. External URLs and in-page anchors are intentionally ignored.
-    for file in list(ROOT.glob("*.md")) + list((ROOT / "docs").glob("*.md")):
+    for file in list(ROOT.glob("*.md")) + list((ROOT / "docs").rglob("*.md")):
         for link in re.findall(r"\]\(([^)]+)\)", file.read_text()):
-            if "://" in link or link.startswith("#") or link.startswith("mailto:"):
+            if "://" in link:
+                url = urlsplit(link)
+                prefix = "/VivienMAN/TypedDocumentAI/blob/main/"
+                if url.netloc == "github.com" and url.path.startswith(prefix):
+                    target = unquote(url.path.removeprefix(prefix))
+                    expect((ROOT / target).is_file(), f"Broken repository URL in {file.name}: {link}")
                 continue
+            if link.startswith("#") or link.startswith("mailto:"):
+                continue
+            expect(file.parent != ROOT / "docs/nuget", f"NuGet README link must be absolute: {file.name}: {link}")
             target = link.split("#", 1)[0]
             expect((file.parent / target).exists(), f"Broken Markdown link in {file.name}: {link}")
     for workflow in (ROOT / ".github/workflows").glob("*.yml"):

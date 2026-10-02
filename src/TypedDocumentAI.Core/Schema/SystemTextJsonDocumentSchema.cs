@@ -11,7 +11,7 @@ namespace TypedDocumentAI;
 
 /// <summary>Reflection-based, strict object schemas backed by the same System.Text.Json contract used for deserialization.</summary>
 /// <remarks>NativeAOT and trimming are not supported by this default implementation. Replace IDocumentSchema for that scenario.</remarks>
-public sealed class SystemTextJsonDocumentSchema : IDocumentSchema
+public sealed partial class SystemTextJsonDocumentSchema : IDocumentSchema
 {
     private static readonly HashSet<Type> Scalars =
     [
@@ -45,7 +45,7 @@ public sealed class SystemTextJsonDocumentSchema : IDocumentSchema
     /// <inheritdoc />
     public T Deserialize<T>(JsonElement data, JsonElement schema) where T : class
     {
-        JsonShapeValidator.Validate(data, schema);
+        ValidateShape(data, schema);
         try
         {
             return data.Deserialize<T>(_options)
@@ -84,7 +84,7 @@ public sealed class SystemTextJsonDocumentSchema : IDocumentSchema
                     return schema;
                 }
             });
-            var portable = PortableSchema.Normalize(node);
+            var portable = NormalizeSchema(node);
             return JsonSerializer.SerializeToElement(portable);
         }
         catch (Exception exception) when (exception is InvalidOperationException or NotSupportedException or ArgumentException)

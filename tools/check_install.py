@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Install all four generated packages from a local feed and run the offline demo."""
+"""Install generated packages, run offline demos and compile documented quickstarts."""
 import argparse
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -36,4 +37,24 @@ with tempfile.TemporaryDirectory(prefix='typeddocumentai-consumer-') as temporar
     subprocess.run(['dotnet', 'restore', '--configfile', str(consumer/'NuGet.config'),
                     '--packages', str(consumer/'packages')], cwd=consumer, check=True)
     subprocess.run(['dotnet', 'run', '--no-restore', '-c', 'Release'], cwd=consumer, check=True)
-print('Local-feed installation and offline consumer passed for all four packages.')
+    (consumer/'Program.cs').write_text((ROOT/'samples/OfflineInvoiceDemo/Program.cs').read_text(), encoding='utf-8')
+    subprocess.run(['dotnet', 'run', '--no-restore', '-c', 'Release'], cwd=consumer, check=True)
+    adapter = None
+    for path in ('README.md', 'README.fr.md', 'docs/nuget/Mistral.md', 'docs/nuget/OpenAI.md'):
+        selected = 'OpenAI' if path.endswith('/OpenAI.md') else 'Mistral'
+        if selected != adapter:
+            for reference in list(items):
+                items.remove(reference)
+            ET.SubElement(items, 'PackageReference', Include='TypedDocumentAI.'+selected, Version=args.version)
+            ET.ElementTree(project).write(consumer/'Consumer.csproj', encoding='unicode')
+            subprocess.run(['dotnet', 'restore', '--configfile', str(consumer/'NuGet.config'),
+                            '--packages', str(consumer/'packages')], cwd=consumer, check=True)
+            adapter = selected
+        blocks = re.findall(r'<!-- compile:quickstart -->\s*```csharp\n(.*?)```\s*<!-- /compile:quickstart -->',
+                            (ROOT/path).read_text(encoding='utf-8'), re.DOTALL)
+        if len(blocks) != 1:
+            raise ValueError(f'{path}: expected exactly one complete quickstart.')
+        (consumer/'Program.cs').write_text(blocks[0], encoding='utf-8')
+        subprocess.run(['dotnet', 'build', '--no-restore', '-c', 'Release'], cwd=consumer, check=True)
+        print(f'Compiled quickstart from {path}; no provider call was made.', flush=True)
+print('Local-feed installation, two offline consumers and four README quickstarts passed.')

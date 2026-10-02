@@ -1,178 +1,161 @@
 # TypedDocumentAI
 
-**Typed document extraction and document text reading for .NET 10, with independent Mistral and OpenAI adapters.**
+[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)](https://dotnet.microsoft.com/) [![MIT](https://img.shields.io/badge/license-MIT-0f766e)](LICENSE)
 
-[Français](README.fr.md) · [Architecture](docs/ARCHITECTURE.md) · [Add a provider](docs/EXTENDING.md) · [V1 migration](docs/MIGRATING-V1.md)
+Extract typed C# objects from documents, or read their text, with independently selectable Mistral and OpenAI adapters. Define an `Invoice`, send a PDF or image, and get an `ExtractionResult<Invoice>` whose shape is validated locally.
 
-> **First release target: `1.0.0`.** Local Linux verification passed: compilation, 124 offline C# tests and creation of the four NuGet packages with symbols. See [validation status](docs/VALIDATION.md). Project CI, publication and paid provider tests have not been run; NuGet publication awaits account setup. [Manual publishing guide](docs/RELEASING.md).
+[Français](README.fr.md) · [Architecture](docs/ARCHITECTURE.md) · [Provider differences](#choose-a-provider) · [Security](SECURITY.md)
 
-## One client, explicit capabilities
+This is an unofficial community library. Provider accounts, API access and usage charges are separate from the MIT-licensed package.
 
-Define the C# shape of a document, select a provider, and receive a validated typed result. Raw text reading is a separate operation. Providers do not need to support both operations, and the client never silently sends your document to a different provider.
+## Try it without an API key
 
-| Package | Responsibility |
+Clone this repository, install the .NET 10 SDK and run:
+
+```sh
+dotnet run --project samples/OfflineInvoiceDemo
+```
+
+The demo registers a custom provider returning a fixed synthetic response. The real client generates a schema, validates that response and produces an `Invoice`. It performs no OCR, inference or provider request.
+
+```text
+OFFLINE DEMO: fixed synthetic response, no OCR, network or paid API call.
+{
+  "Number": "INV-001",
+  "Total": 125.50,
+  "Date": "2026-10-01"
+}
+```
+
+.NET may restore dependencies on the first run; the demo itself makes no network request. JSON numeric formatting may omit trailing zeroes.
+
+## Install and extract a document
+
+**Runtime requirement: .NET 10.** Install only the adapter you need; Core and Abstractions arrive as dependencies. Python is needed only for repository verification, never by your application.
+
+The following NuGet commands apply after the first publication. Until then, use the repository demos or project references. Check [releases](https://github.com/VivienMAN/TypedDocumentAI/releases) for publication status.
+
+```sh
+dotnet new console -n InvoiceDemo -f net10.0
+cd InvoiceDemo
+dotnet add package TypedDocumentAI.Mistral
+```
+
+Set `MISTRAL_API_KEY` in your server-side environment or secret store, then replace `Program.cs` with this complete example. Do not put credentials in source code.
+
+<!-- compile:quickstart -->
+```csharp
+using System.ComponentModel;
+using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using TypedDocumentAI;
+using TypedDocumentAI.Mistral;
+
+if (args.Length != 2 || args[1] != "--live")
+{
+    Console.Error.WriteLine("Usage: dotnet run -- <invoice.png|invoice.pdf> --live");
+    Console.Error.WriteLine("--live sends your document to Mistral and may incur API charges.");
+    return 2;
+}
+
+var services = new ServiceCollection();
+services.AddDocumentAI().AddMistral(options =>
+{
+    options.ApiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY")
+        ?? throw new InvalidOperationException("Set MISTRAL_API_KEY in your environment.");
+});
+await using var container = services.BuildServiceProvider();
+var client = container.GetRequiredService<IDocumentClient>();
+var document = await DocumentInput.FromFileAsync(args[0]);
+var result = await client.ExtractAsync<Invoice>(document);
+Console.WriteLine(JsonSerializer.Serialize(result.Value,
+    new JsonSerializerOptions { WriteIndented = true }));
+return 0;
+
+public sealed class Invoice
+{
+    [Description("Invoice number exactly as printed, or null when absent")]
+    public string? Number { get; init; }
+    [Description("Printed final total including taxes, or null when absent")]
+    public decimal? Total { get; init; }
+    [Description("Invoice date in YYYY-MM-DD format, or null when absent")]
+    public DateOnly? Date { get; init; }
+}
+```
+<!-- /compile:quickstart -->
+
+Run it with a synthetic image or PDF:
+
+```sh
+dotnet run -- invoice.png --live
+```
+
+This sends the file to Mistral and may incur charges. Nullable fields represent missing information. A schema-valid object still requires your business validation; it does not prove that the model read the right total.
+
+For OpenAI, install `TypedDocumentAI.OpenAI`, set `OPENAI_API_KEY` and follow its [complete quickstart](docs/nuget/OpenAI.md). You need only one provider key for either example.
+
+## Choose a provider
+
+| Behavior | Mistral | OpenAI |
+| --- | --- | --- |
+| Typed extraction | OCR document annotations | Responses structured output |
+| `ReadAsync` | Native OCR Markdown | Generative text transcription |
+| PDF, PNG, JPEG, WEBP | Supported by this adapter | Supported by this adapter |
+| Actual page indices | Available | Not supplied; `Pages` is empty |
+| Page selection, header/footer options | `MistralRequestOptions` | Not exposed |
+| Confidence, geometry, batch processing | Not exposed | Not exposed |
+
+These describe this library's adapters, not every upstream feature. [Provider contracts](docs/UPSTREAM-CONTRACTS.md) list the official references.
+
+The defaults are configurable: `mistral-ocr-latest` for Mistral and `gpt-4.1-mini` for OpenAI. Provider availability and limits can change.
+
+Register several providers only when you need them. Choose one explicitly with `ExtractionOptions.ProviderName`, or configure `DefaultProviderName`; there is no automatic cross-provider fallback. Provider-specific options stay in their own packages.
+
+## Package family
+
+| Package | Intended use |
 | --- | --- |
-| `TypedDocumentAI.Abstractions` | Inputs, options, results and small provider contracts. No third-party dependencies. |
-| `TypedDocumentAI.Core` | Routing, schemas, validation, DI, diagnostics and optional HTTP infrastructure. |
-| `TypedDocumentAI.Mistral` | Mistral OCR and structured document annotations. |
-| `TypedDocumentAI.OpenAI` | OpenAI Responses multimodal transcription and structured extraction. |
+| `TypedDocumentAI.Abstractions` | Provider interfaces, input snapshots, options and result types; no third-party dependencies. |
+| `TypedDocumentAI.Core` | Typed client, schema validation, routing, DI and reusable HTTP transport. |
+| `TypedDocumentAI.Mistral` | Mistral registration and adapter. |
+| `TypedDocumentAI.OpenAI` | OpenAI registration and adapter; Azure OpenAI is not supported. |
 
-There is no dependency from Core to either provider. Install only the adapters you use. This is an unofficial community project, not an official Mistral or OpenAI SDK.
+Implement `IOcrProvider`, `IStructuredDocumentProvider`, or both for a new engine. See [extending the library](docs/EXTENDING.md).
 
-## Start from source
+## Limits and failure handling
 
-Requirements: .NET SDK 10 and Python 3.10+ for repository verification scripts. Application consumers do not need Python. Provider APIs require separately configured accounts, compatible models and API access.
+- .NET 10 only. NativeAOT and trimming are not supported by the default reflection-based schema engine.
+- Documents are buffered snapshots: 20 MiB input, 16 MiB response and a two-minute HTTP deadline by default. Base64 and concurrent requests require additional memory.
+- POST retries are off by default because replay can duplicate charges. Unsupported settings, refusals, incomplete responses and malformed data are reported as errors.
+- Schemas support concrete classes/records, writable or `init` properties, nested objects, generic collections, scalar/date types and string enums. Dictionaries, cycles, polymorphism and arbitrary JSON Schema are excluded.
+- Library errors and tracing omit document bodies and credentials. OpenAI's `store: false` is not a zero-retention guarantee.
+
+See [schemas](docs/SCHEMAS.md), [operations](docs/OPERATIONS.md) and [security](SECURITY.md) for the full contracts.
+
+## Demos and documentation
+
+| Example | What it demonstrates |
+| --- | --- |
+| [OfflineInvoiceDemo](samples/OfflineInvoiceDemo/Program.cs) | Complete typed extraction with a fixed synthetic response; no provider key. |
+| [CustomProviderDemo](samples/CustomProviderDemo/Program.cs) | A minimal `text/plain` provider and `ReadAsync`; no OCR. |
+| [InvoiceConsole](samples/InvoiceConsole/Program.cs) | Real Mistral/OpenAI reading and extraction; requires `--live` and one key. |
+
+The [synthetic invoice](samples/InvoiceConsole/Fixtures/invoice.png) contains `INV-001`, `2026-10-01` and a total of `125.50`. Live results can differ; verify them.
+
+```sh
+# Each command sends the synthetic image and may incur charges:
+dotnet run --project samples/InvoiceConsole -- mistral samples/InvoiceConsole/Fixtures/invoice.png extract --live
+dotnet run --project samples/InvoiceConsole -- openai samples/InvoiceConsole/Fixtures/invoice.png extract --live
+```
+
+## Contribute and get help
+
+Maintained by [VivienMAN](https://github.com/VivienMAN) and contributors. Use [issues](https://github.com/VivienMAN/TypedDocumentAI/issues) for reproducible bugs and focused feature requests; support is best effort. For security defects, follow [SECURITY.md](SECURITY.md) and do not post sensitive material publicly.
 
 ```sh
 python tools/verify.py
 ```
 
-This restores and builds the solution, runs offline xUnit tests with coverage collection, executes the local custom-provider demo, and packs/checks four `.nupkg` and four `.snupkg` files under `artifacts/packages/`. A failing step stops the command. No paid AI call is part of normal verification.
+This runs compilation, offline tests, API/visibility checks, all offline demos, NuGet packaging, local-feed installation and compilation of the documented quickstarts. See [testing](docs/TESTING.md), [actual validation status](docs/VALIDATION.md), [contributing](CONTRIBUTING.md), [releasing](docs/RELEASING.md) and [prototype migration](docs/MIGRATING-V1.md).
 
-For an existing application before publication, add source project references:
-
-```sh
-dotnet add YourApp.csproj reference path/to/TypedDocumentAI/src/TypedDocumentAI.Mistral/TypedDocumentAI.Mistral.csproj
-dotnet add YourApp.csproj reference path/to/TypedDocumentAI/src/TypedDocumentAI.OpenAI/TypedDocumentAI.OpenAI.csproj
-```
-
-### Register providers
-
-In an application that uses Microsoft dependency injection:
-
-```csharp
-using TypedDocumentAI;
-using TypedDocumentAI.Mistral;
-using TypedDocumentAI.OpenAI;
-
-services.AddDocumentAI(options => options.DefaultProviderName = "mistral")
-    .AddMistral(options =>
-    {
-        options.ApiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY")
-            ?? throw new InvalidOperationException("MISTRAL_API_KEY is missing.");
-    })
-    .AddOpenAI(options =>
-    {
-        options.ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-            ?? throw new InvalidOperationException("OPENAI_API_KEY is missing.");
-    });
-```
-
-Register only one adapter when only one key is available. With exactly one provider, no default name is needed. With several providers, configure a default or select a name on each call. Provider instances and the common client are singletons: custom providers must be thread-safe.
-
-### Extract a typed document
-
-```csharp
-using System.ComponentModel;
-using TypedDocumentAI;
-
-public sealed class Invoice
-{
-    [Description("Invoice number exactly as printed, or null when absent.")]
-    public string? Number { get; init; }
-
-    [Description("Final invoice total including taxes, or null when absent.")]
-    public decimal? Total { get; init; }
-
-    [Description("Invoice date in YYYY-MM-DD format, or null when absent.")]
-    public DateOnly? Date { get; init; }
-}
-```
-
-Inject `IDocumentClient`, then:
-
-```csharp
-var document = await DocumentInput.FromFileAsync(
-    "invoice.pdf", cancellationToken: cancellationToken);
-
-var result = await client.ExtractAsync<Invoice>(
-    document,
-    new ExtractionOptions { ProviderName = "mistral" },
-    cancellationToken);
-
-Invoice invoice = result.Value;
-string providerUsed = result.Metadata.ProviderName;
-```
-
-The same call accepts `ProviderName = "openai"`. Changing providers is an explicit caller decision, not automatic failover. Neither a valid schema nor successful deserialization proves that extracted values are correct; keep business validation and human review where needed.
-
-### Read text and real page metadata
-
-```csharp
-var result = await client.ReadAsync(document,
-    new DocumentRequestOptions
-    {
-        ProviderName = "mistral",
-        ProviderOptions = new MistralRequestOptions
-        {
-            Pages = new[] { 0, 1 },
-            ExtractHeaders = true,
-            ExtractFooters = true
-        }
-    }, cancellationToken);
-
-Console.WriteLine(result.Text);
-```
-
-Mistral page indices are zero-based. `Pages` preserves the page indices and order returned upstream, including selected pages. OpenAI returns document-level text without synthetic page boundaries.
-
-| Capability in this release line | Mistral adapter | OpenAI adapter |
-| --- | --- | --- |
-| PDF, PNG, JPEG and WEBP input | Yes | Yes |
-| Typed extraction from C# schema | OCR document annotations | Responses strict structured output |
-| `ReadAsync` | Native OCR Markdown | Generative transcription |
-| Page-indexed output | Upstream page indices | No, empty `Pages` |
-| Page selection | `MistralRequestOptions.Pages` | Not exposed |
-| Separate page header/footer | Optional | Not exposed |
-| Free-form instructions for raw reading | Rejected | Supported |
-| Confidence scores, bounding boxes, batch jobs | Not exposed | Not exposed |
-| URL inputs, remote Files API resources | Not exposed | Not exposed |
-
-This table describes these adapters, not every feature available on the upstream platforms. See [upstream contracts and primary sources](docs/UPSTREAM-CONTRACTS.md).
-
-## Provider-specific settings stay provider-specific
-
-```csharp
-var result = await client.ExtractAsync<Invoice>(document,
-    new ExtractionOptions
-    {
-        ProviderName = "openai",
-        SchemaName = "invoice",
-        Instructions = "Use the document's printed final total. Do not calculate missing amounts.",
-        ProviderOptions = new OpenAiRequestOptions
-        {
-            Model = "gpt-4.1-mini",
-            MaxOutputTokens = 4096
-        }
-    }, cancellationToken);
-```
-
-Passing Mistral settings to OpenAI or vice versa throws before HTTP. Unsupported options are not silently ignored. Mistral header/footer switches apply to `ReadAsync`, not to typed extraction. Models are configurable; availability, limits and charges are controlled by the provider.
-
-## Reliability and data handling
-
-Inputs are buffered snapshots, not streaming OCR. The default local/provider input limit is **20 MiB**, the response limit is **16 MiB**, and the HTTP operation deadline is **two minutes**. Base64, JSON serialization and concurrent requests require additional memory. [Operational details](docs/OPERATIONS.md) explain how to tune these limits and concurrency.
-
-POST retries are **off by default**. Opt in deliberately with `MaxRetryAttempts`: a timeout or network failure can hide a successful paid request. Enabled retries use bounded exponential backoff and `Retry-After`; they never retry malformed JSON or refusals. There is no cross-provider retry/fallback.
-
-The built-in HTTP setup requires HTTPS, disables redirects and cookies, and redacts request headers from factory logging. Documents and prompts are not written to library logs or exception messages. OpenAI requests set `store: false`, but this **does not establish zero data retention**. Both providers still receive the document. See [SECURITY.md](SECURITY.md).
-
-## Schema contract and limits
-
-Supported shapes are concrete classes/records with writable or `init` properties, nested objects, one-dimensional generic collections, common .NET scalar/date types and string enums. `[Description]`, `[JsonPropertyName]` and `[JsonIgnore]` are supported. All emitted object keys are required; missing information should use nullable values.
-
-The default schema service rejects cycles, dictionaries, unconstrained `object`, polymorphism, get-only members, custom converters and flags enums. It uses reflection and does **not** claim NativeAOT/trimming support. Its local validator covers only the finite schema subset it emits, not arbitrary JSON Schema. See [schema contract](docs/SCHEMAS.md).
-
-## Examples and repository guides
-
-The [invoice console](samples/InvoiceConsole/Program.cs) requires an explicit `--live` flag and uses one selected API key. The [custom provider demo](samples/CustomProviderDemo/Program.cs) runs completely offline and proves plugin registration without pretending to be a third OCR engine.
-
-```sh
-# No credentials, network or paid API request:
-dotnet run --project samples/CustomProviderDemo
-
-# After setting MISTRAL_API_KEY; sends a synthetic invoice and may incur charges:
-dotnet run --project samples/InvoiceConsole -- mistral samples/InvoiceConsole/Fixtures/invoice.png extract --live
-```
-
-Read [testing](docs/TESTING.md), [release setup](docs/RELEASING.md), [contributing](CONTRIBUTING.md) and [migration from V1](docs/MIGRATING-V1.md). MIT license for this source; upstream service terms and separately restored dependencies still apply.
+CI and publishing are manual. Live provider calls are separate opt-in operations. MIT license applies to this source; restored dependencies and provider services have their own terms.

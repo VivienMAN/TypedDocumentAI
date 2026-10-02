@@ -3,11 +3,11 @@ using System.Text.Json.Nodes;
 
 namespace TypedDocumentAI;
 
-internal static class PortableSchema
+public sealed partial class SystemTextJsonDocumentSchema
 {
-    internal static JsonObject Normalize(JsonNode root)
+    private static JsonObject NormalizeSchema(JsonNode root)
     {
-        var normalized = Visit(root, root, [], 0);
+        var normalized = NormalizeSchemaNode(root, root, [], 0);
         if (normalized["properties"] is not JsonObject)
         {
             throw new DocumentSchemaException("The root schema must describe an object.");
@@ -21,7 +21,7 @@ internal static class PortableSchema
         return normalized;
     }
 
-    private static JsonObject Visit(JsonNode node, JsonNode root, HashSet<string> references, int depth)
+    private static JsonObject NormalizeSchemaNode(JsonNode node, JsonNode root, HashSet<string> references, int depth)
     {
         if (depth > 32 || node is not JsonObject source)
         {
@@ -35,7 +35,7 @@ internal static class PortableSchema
             }
             try
             {
-                var expanded = Visit(Resolve(root, reference), root, references, depth + 1);
+                var expanded = NormalizeSchemaNode(ResolveSchemaReference(root, reference), root, references, depth + 1);
                 if (source["description"] is JsonValue description)
                 {
                     expanded["description"] = description.DeepClone();
@@ -66,7 +66,7 @@ internal static class PortableSchema
             var normalizedAlternatives = new JsonArray();
             foreach (var alternative in alternatives)
             {
-                normalizedAlternatives.Add(Visit(alternative!, root, references, depth + 1));
+                normalizedAlternatives.Add(NormalizeSchemaNode(alternative!, root, references, depth + 1));
             }
             target["anyOf"] = normalizedAlternatives;
         }
@@ -76,7 +76,7 @@ internal static class PortableSchema
             var required = new JsonArray();
             foreach (var (name, property) in properties)
             {
-                normalizedProperties[name] = Visit(property!, root, references, depth + 1);
+                normalizedProperties[name] = NormalizeSchemaNode(property!, root, references, depth + 1);
                 required.Add(name);
             }
             target["properties"] = normalizedProperties;
@@ -85,7 +85,7 @@ internal static class PortableSchema
         }
         if (source["items"] is { } items)
         {
-            target["items"] = Visit(items, root, references, depth + 1);
+            target["items"] = NormalizeSchemaNode(items, root, references, depth + 1);
         }
         if (target["type"] is null && target["anyOf"] is null && target["enum"] is null)
         {
@@ -94,7 +94,7 @@ internal static class PortableSchema
         return target;
     }
 
-    private static JsonNode Resolve(JsonNode root, string reference)
+    private static JsonNode ResolveSchemaReference(JsonNode root, string reference)
     {
         JsonNode? current = root;
         foreach (var encoded in reference[2..].Split('/'))

@@ -10,6 +10,8 @@ namespace TypedDocumentAI.Http;
 /// <summary>Optional reusable HTTP foundation. Local OCR providers can implement the operation interfaces directly.</summary>
 public abstract class HttpDocumentProvider : IDocumentProvider
 {
+    private static readonly ProductInfoHeaderValue Product = new("TypedDocumentAI",
+        typeof(HttpDocumentProvider).Assembly.GetName().Version!.ToString(3));
     private readonly IHttpClientFactory _clientFactory;
     private readonly string _httpClientName;
     private readonly string _apiKey;
@@ -117,7 +119,7 @@ public abstract class HttpDocumentProvider : IDocumentProvider
                 using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_baseAddress, relativePath));
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                request.Headers.UserAgent.ParseAdd("TypedDocumentAI/2.0");
+                request.Headers.UserAgent.Add(Product);
                 request.Content = new ByteArrayContent(bytes);
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 HttpResponseMessage response;

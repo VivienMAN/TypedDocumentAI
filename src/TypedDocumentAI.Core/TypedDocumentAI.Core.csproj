@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="../TypedDocumentAI.Abstractions/TypedDocumentAI.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Extensions.Http" />
-    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../docs/nuget/Core.md" Pack="true" PackagePath="README.md" />
+    <None Include="../../assets/icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

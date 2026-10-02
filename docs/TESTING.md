@@ -2,7 +2,7 @@
 
 ## Delivery status
 
-Local Linux verification passed with .NET SDK 10.0.112: 124 C# tests, a warnings-as-errors build, package creation and local-feed installation. GitHub Actions, Windows execution and live provider calls have not been run. See [VALIDATION.md](VALIDATION.md) for the exact checks performed.
+Local Linux verification passed with .NET SDK 10.0.112: 127 C# tests, a warnings-as-errors build, package creation and local-feed installation. GitHub Actions, Windows execution and live provider calls have not been run. See [VALIDATION.md](VALIDATION.md) for the exact checks performed.
 
 ## Full offline verification
 
@@ -12,7 +12,7 @@ From the repository root with .NET 10 and Python 3.10+:
 python tools/verify.py
 ```
 
-Equivalent wrappers are `bash tools/verify.sh` and `./tools/verify.ps1`. The script does not suppress errors and exits with code 2 when dotnet is absent. It runs restore, a warnings-as-errors build, xUnit/VSTest with coverlet collection, the custom-provider sample, then `dotnet pack`, actual package-content checks, release-automation regression tests and installation into a disposable consumer from a local feed. Outputs are under `artifacts/`.
+Equivalent wrappers are `bash tools/verify.sh` and `./tools/verify.ps1`. The script does not suppress errors and exits with code 2 when dotnet is absent. It runs restore, a warnings-as-errors build, xUnit/VSTest with coverlet collection, both offline samples, public/protected API snapshot and private-method checks, then `dotnet pack`, actual package-content checks, release-automation regression tests and installation into a disposable consumer from a local feed. Both offline demos run again against the packed binaries, and all four complete README quickstarts compile against the selected provider package without calling it. Outputs are under `artifacts/`.
 
 Normal tests use an in-memory `HttpMessageHandler`, synthetic JSON and tiny mock document byte sequences. The mock PDF bytes are intentionally not a real renderable PDF: HTTP unit tests validate our contract, not a provider's PDF decoder. No external HTTP request or credential is needed for those tests.
 

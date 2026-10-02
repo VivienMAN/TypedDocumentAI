@@ -1,3 +1,4 @@
+using TypedDocumentAI.Http;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -6,6 +7,15 @@ namespace TypedDocumentAI.Tests;
 
 public sealed class TransportTests
 {
+    [Fact]
+    public async Task User_agent_reports_the_actual_library_version()
+    {
+        using var handler = new StubHandler(_ => TestData.Mistral());
+        await TestData.Client(TestData.MistralProvider(handler)).ReadAsync(TestData.Pdf());
+        var version = typeof(HttpDocumentProvider).Assembly.GetName().Version!.ToString(3);
+        Assert.Equal("TypedDocumentAI/" + version, Assert.Single(handler.Requests).UserAgent);
+    }
+
     [Fact]
     public async Task Retries_are_disabled_by_default()
     {

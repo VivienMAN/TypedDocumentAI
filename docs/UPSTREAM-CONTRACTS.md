@@ -27,10 +27,12 @@ OpenAI's adapter is multimodal generative transcription, not a claim of native O
 
 ## .NET and repository tooling
 
+- [NuGet package authoring guidance](https://learn.microsoft.com/en-us/nuget/create-packages/package-authoring-best-practices), [package README support](https://learn.microsoft.com/en-us/nuget/nuget-org/package-readme-on-nuget-org) and [Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
+
 - [System.Text.Json schema exporter](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/extract-schema).
 - [System.Text.Json nullability](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/nullable-annotations).
 - [IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory).
 - [Microsoft.Extensions.Http 10.0.9](https://www.nuget.org/packages/Microsoft.Extensions.Http/10.0.9), [Microsoft.NET.Test.Sdk 17.14.1](https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/17.14.1), [xUnit 2.9.3](https://www.nuget.org/packages/xunit/2.9.3), [VS runner 3.1.5](https://www.nuget.org/packages/xunit.runner.visualstudio/3.1.5), [coverlet 6.0.4](https://www.nuget.org/packages/coverlet.collector/6.0.4).
 - [actions/checkout](https://github.com/actions/checkout), [actions/setup-dotnet](https://github.com/actions/setup-dotnet), [actions/upload-artifact](https://github.com/actions/upload-artifact).
 
-Package pages and action references were checked as published references, not restored/executed in this environment. Dependency audit, runner behavior, compiler/analyzer compatibility and live model behavior still require the supplied verification workflows.
+Direct dependencies have been restored and audited locally, and the solution compiled on Linux with warnings treated as errors. Action revisions were checked as published references and workflow syntax was linted; no project workflow, Windows runner or live model request has been executed. See [VALIDATION.md](VALIDATION.md) for the evidence and remaining checks.

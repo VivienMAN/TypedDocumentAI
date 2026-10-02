@@ -46,7 +46,9 @@ A four-package release is not an atomic NuGet transaction. Successful uploads ca
 
 Use **Re-run failed jobs** or **Re-run all jobs** for the original run. Alternatively, launch **Publish NuGet** again from `main`, setting `resume_tag` to the draft's tag, such as `v1.0.0`. The chosen increment is ignored. The saved version, source commit and original package bundle are reused, even if `main` has advanced. Re-running an already completed publication is a no-op.
 
-If upload failed while NuGet was still indexing a previously accepted package, the workflow waits for the package and verifies its contents before treating it as already uploaded. Repository signatures and their content-type entry are ignored when comparing payloads; other changes stop publication. Symbols can be resubmitted with duplicate detection after the main package has been checked. Release assets and tags are never force-replaced.
+HTTP 401/403 authentication or permission failures and HTTP 400/422 invalid-package failures stop immediately with a safe diagnostic; captured tool output containing credentials is never printed. Unknown upload failures also stop without assuming an upload succeeded.
+
+If an HTTP 409 conflict occurs while NuGet is still indexing a previously accepted package, the workflow waits for the package and verifies its contents before treating it as already uploaded. Repository signatures and their content-type entry are ignored when comparing payloads; other changes stop publication. Symbols can be resubmitted with duplicate detection after the main package has been checked. Release assets and tags are never force-replaced.
 
 Do not delete the draft, its tag or bundle to work around a failure after uploading packages. Fix account permissions, policy or registry availability, then resume. If indexing exceeds the workflow wait, resume later. If existing package contents differ, investigate ownership and the earlier upload; automatic publication stops rather than silently accepting the mismatch.
 

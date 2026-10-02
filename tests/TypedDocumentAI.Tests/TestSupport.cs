@@ -86,7 +86,7 @@ internal static class TestData
         new(providers, new SystemTextJsonDocumentSchema(), new DocumentAIOptions());
 }
 
-internal sealed record RequestSnapshot(HttpMethod Method, Uri Uri, JsonElement Body, string? Authorization);
+internal sealed record RequestSnapshot(HttpMethod Method, Uri Uri, JsonElement Body, string? Authorization, string UserAgent);
 
 internal sealed class StubHandler : HttpMessageHandler
 {
@@ -102,7 +102,7 @@ internal sealed class StubHandler : HttpMessageHandler
         var bytes = await request.Content!.ReadAsByteArrayAsync(cancellationToken);
         using var document = JsonDocument.Parse(bytes);
         var snapshot = new RequestSnapshot(request.Method, request.RequestUri!, document.RootElement.Clone(),
-            request.Headers.Authorization?.ToString());
+            request.Headers.Authorization?.ToString(), request.Headers.UserAgent.ToString());
         _requests.Enqueue(snapshot);
         return await _respond(snapshot, cancellationToken);
     }

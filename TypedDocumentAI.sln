@@ -16,6 +16,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypedDocumentAI.OpenAI", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypedDocumentAI.Tests", "tests\TypedDocumentAI.Tests\TypedDocumentAI.Tests.csproj", "{9A045CAE-A91D-588B-A14F-0719724E074E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OfflineInvoiceDemo", "samples\OfflineInvoiceDemo\OfflineInvoiceDemo.csproj", "{928F043E-E798-4EBF-BC05-A49846312E20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,5 +52,9 @@ Global
 		{9A045CAE-A91D-588B-A14F-0719724E074E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A045CAE-A91D-588B-A14F-0719724E074E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A045CAE-A91D-588B-A14F-0719724E074E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{928F043E-E798-4EBF-BC05-A49846312E20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{928F043E-E798-4EBF-BC05-A49846312E20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{928F043E-E798-4EBF-BC05-A49846312E20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{928F043E-E798-4EBF-BC05-A49846312E20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

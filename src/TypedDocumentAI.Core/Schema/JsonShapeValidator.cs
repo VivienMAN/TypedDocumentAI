@@ -3,33 +3,33 @@ using System.Text.Json;
 
 namespace TypedDocumentAI;
 
-// Validates only the finite portable subset emitted by PortableSchema, not arbitrary JSON Schema documents.
-internal static class JsonShapeValidator
+// Validates only the finite portable subset emitted by this schema engine, not arbitrary JSON Schema documents.
+public sealed partial class SystemTextJsonDocumentSchema
 {
-    internal static void Validate(JsonElement data, JsonElement schema)
+    private static void ValidateShape(JsonElement data, JsonElement schema)
     {
-        if (!Matches(data, schema, 0))
+        if (!MatchesShape(data, schema, 0))
         {
             throw new DocumentResponseException("The extracted JSON does not match the required document shape.");
         }
     }
 
-    private static bool Matches(JsonElement value, JsonElement schema, int depth)
+    private static bool MatchesShape(JsonElement value, JsonElement schema, int depth)
     {
         if (depth > 64 || schema.ValueKind != JsonValueKind.Object || value.ValueKind == JsonValueKind.Undefined)
         {
             return false;
         }
         if (schema.TryGetProperty("anyOf", out var alternatives) &&
-            !alternatives.EnumerateArray().Any(alternative => Matches(value, alternative, depth + 1)))
+            !alternatives.EnumerateArray().Any(alternative => MatchesShape(value, alternative, depth + 1)))
         {
             return false;
         }
         if (schema.TryGetProperty("type", out var type))
         {
             var matches = type.ValueKind == JsonValueKind.Array
-                ? type.EnumerateArray().Any(candidate => HasType(value, candidate.GetString()))
-                : HasType(value, type.GetString());
+                ? type.EnumerateArray().Any(candidate => HasJsonType(value, candidate.GetString()))
+                : HasJsonType(value, type.GetString());
             if (!matches)
             {
                 return false;
@@ -47,7 +47,7 @@ internal static class JsonShapeValidator
             {
                 // Duplicate keys are ambiguous and are rejected, even when the values happen to agree.
                 if (!names.Add(member.Name) || !properties.TryGetProperty(member.Name, out var memberSchema) ||
-                    !Matches(member.Value, memberSchema, depth + 1))
+                    !MatchesShape(member.Value, memberSchema, depth + 1))
                 {
                     return false;
                 }
@@ -62,12 +62,12 @@ internal static class JsonShapeValidator
         }
         if (value.ValueKind == JsonValueKind.Array && schema.TryGetProperty("items", out var items))
         {
-            return value.EnumerateArray().All(item => Matches(item, items, depth + 1));
+            return value.EnumerateArray().All(item => MatchesShape(item, items, depth + 1));
         }
         return true;
     }
 
-    private static bool HasType(JsonElement value, string? type) => type switch
+    private static bool HasJsonType(JsonElement value, string? type) => type switch
     {
         "object" => value.ValueKind == JsonValueKind.Object,
         "array" => value.ValueKind == JsonValueKind.Array,

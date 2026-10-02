@@ -40,6 +40,8 @@ def main() -> int:
         "--settings", "tests/coverage.runsettings", "--collect", "XPlat Code Coverage", *properties)
     run("dotnet", "run", "--project", "samples/CustomProviderDemo", "-c", args.configuration,
         "--no-build", "--no-restore", *properties)
+    run("dotnet", "run", "--project", "samples/OfflineInvoiceDemo", "-c", args.configuration,
+        "--no-build", "--no-restore", *properties)
     output = ROOT / "artifacts/packages"
     output.mkdir(parents=True, exist_ok=True)
     # Remove only generated package files, not an arbitrary directory supplied by the caller.

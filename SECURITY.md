@@ -2,7 +2,7 @@
 
 ## Reporting
 
-Do not publish credentials, private documents or exploitation details in a public issue. After the repository owner enables GitHub private vulnerability reporting, use the repository's Security tab. If that channel is not enabled, contact a maintainer through an actual private contact they publish. This source bundle does not create a monitored mailbox or promise a response-time SLA.
+Do not publish credentials, private documents or exploitation details in a public issue. Use [GitHub private vulnerability reporting](https://github.com/VivienMAN/TypedDocumentAI/security/advisories/new), enabled for this repository. Reports are handled by the maintainer on a best-effort basis; no response-time SLA is promised.
 
 The latest stable release line is maintained. Local compiler and offline tests have passed; no independent security audit or live provider verification has been performed. See [validation](docs/VALIDATION.md).
 

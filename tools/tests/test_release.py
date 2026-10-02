@@ -120,8 +120,19 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(release.package_payload(package()), release.package_payload(package(True)))
         self.assertNotEqual(release.package_payload(package()), release.package_payload(package(True, b'changed')))
 
+    def test_upload_diagnostics_classify_status_without_exposing_output(self):
+        for code in (400, 401, 403, 409, 422):
+            for message in (f'Response status code does not indicate success: {code} (Error).', f'HTTP {code}'):
+                result = subprocess.CompletedProcess([], 1, message + ' secret-test-only', 'sensitive body')
+                self.assertEqual(code, release.push_status(result))
+                diagnostic = str(release.push_error('TypedDocumentAI.Core', result, symbols=True))
+                self.assertIn(f'HTTP {code}', diagnostic)
+                self.assertNotIn('secret-test-only', diagnostic)
+                self.assertNotIn('sensitive body', diagnostic)
+        self.assertIsNone(release.push_status(subprocess.CompletedProcess([], 1, None, None)))
+
     def test_publish_uses_saved_bundle_and_only_finalizes_after_verification(self):
-        for outcome in ('success', 'mismatch', 'symbol_failure', 'push_failure'):
+        for outcome in ('success', 'mismatch', 'symbol_failure', 'push_failure', 'auth_failure', 'bad_package', 'conflict', 'conflict_mismatch'):
             with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as temporary, redirect_stdout(io.StringIO()):
                 root = Path(temporary)
                 source = root/'source'
@@ -142,12 +153,24 @@ class ReleaseTests(unittest.TestCase):
                     path = directory/name
                     shutil.copyfile(bundle, path)
                     return path
+                lookups = {}
                 def remote(package, version):
-                    if outcome == 'push_failure':
+                    lookups[package] = lookups.get(package, 0) + 1
+                    if outcome in ('push_failure', 'auth_failure', 'bad_package'):
                         return None
+                    if outcome in ('conflict', 'conflict_mismatch') and lookups[package] == 1:
+                        return None
+                    if outcome == 'conflict_mismatch':
+                        return (source/'TypedDocumentAI.Core.1.0.0.nupkg').read_bytes()
                     if outcome == 'mismatch':
                         return (source/'TypedDocumentAI.Core.1.0.0.nupkg').read_bytes()
                     return (source/f'{package}.{version}.nupkg').read_bytes()
+                def upload(path, symbols=False):
+                    status = {'auth_failure': 403, 'bad_package': 400, 'conflict': 409,
+                              'conflict_mismatch': 409}.get(outcome)
+                    failed = outcome in ('symbol_failure', 'push_failure') or (status is not None and not symbols)
+                    return subprocess.CompletedProcess([], int(failed), '',
+                        f'Response status code does not indicate success: {status}. secret-test-only' if failed else '')
                 args = type('Args', (), {'version': '1.0.0', 'source_sha': SHA, 'directory': target})()
                 completed = {'draft': False, 'html_url': 'https://github.com/VivienMAN/TypedDocumentAI/releases/tag/v1.0.0'}
                 with patch.dict(os.environ, {'NUGET_API_KEY': 'test-only', 'GITHUB_STEP_SUMMARY': '', 'GITHUB_REPOSITORY': 'VivienMAN/TypedDocumentAI'}), \
@@ -155,18 +178,22 @@ class ReleaseTests(unittest.TestCase):
                      patch.object(release, 'download', side_effect=saved), \
                      patch.object(release, 'check_files'), \
                      patch.object(release, 'remote_package', side_effect=remote), \
-                     patch.object(release.time, 'sleep'), \
-                     patch.object(release, 'push', return_value=subprocess.CompletedProcess([], int(outcome in ('symbol_failure', 'push_failure')))) as push, \
+                     patch.object(release.time, 'sleep') as sleep, \
+                     patch.object(release, 'push', side_effect=upload) as push, \
                      patch.object(release, 'api', return_value=completed) as api:
-                    if outcome == 'success':
+                    if outcome in ('success', 'conflict'):
                         release.publish(args)
-                        self.assertEqual(4, push.call_count)
-                        self.assertTrue(all(call.kwargs['symbols'] for call in push.call_args_list))
+                        self.assertEqual(4 if outcome == 'success' else 8, push.call_count)
+                        if outcome == 'success':
+                            self.assertTrue(all(call.kwargs['symbols'] for call in push.call_args_list))
                         self.assertEqual(2, api.call_count)
                     else:
                         with self.assertRaises((ValueError, RuntimeError)):
                             release.publish(args)
                         api.assert_not_called()
+                        if outcome in ('auth_failure', 'bad_package', 'push_failure'):
+                            sleep.assert_not_called()
+                            self.assertEqual(1, push.call_count)
                     for name in release.filenames('1.0.0'):
                         self.assertEqual((source/name).read_bytes(), (target/name).read_bytes())
 

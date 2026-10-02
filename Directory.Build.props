@@ -10,7 +10,10 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <Version>1.0.0</Version>
-    <Authors>TypedDocumentAI contributors</Authors>
+    <Authors>VivienMAN and TypedDocumentAI contributors</Authors>
+    <Copyright>Copyright (c) 2026 TypedDocumentAI contributors</Copyright>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/VivienMAN/TypedDocumentAI/releases/tag/v$(Version)</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
