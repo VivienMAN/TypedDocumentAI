@@ -38,7 +38,7 @@ The workflow verifies the selected commit on Linux and Windows, including offlin
 
 Publication proceeds in dependency order: Abstractions, Core, Mistral, OpenAI, including their symbol packages. The workflow waits up to 20 minutes after submissions for all four primary packages to become downloadable, compares their payloads with the saved originals, then publishes the GitHub release with generated notes and NuGet links. [NuGet validation and indexing](https://learn.microsoft.com/en-us/nuget/nuget-org/publish-a-package) are asynchronous. Symbol uploads are checked for acceptance; symbol-server indexing is asynchronous and is not certified by the workflow.
 
-No workflows run on pushes, pull requests, tags or release events. **CI** can be run manually without publication. Provider calls are excluded from both CI and releases; the separate manual smoke workflow needs explicit paid-request authorization and its own credentials. Weekly Dependabot checks may open PRs but do not launch CI.
+No workflows run on pushes, pull requests, tags or release events. **CI** can be run manually without publication. Provider calls are excluded from both CI and releases; the separate manual smoke workflow needs explicit paid-request authorization and its own credentials. Scheduled Dependabot version updates are disabled to keep repository automation manual. Review dependency versions and pinned action commits as part of maintenance.
 
 ## Resume an interrupted publication
 

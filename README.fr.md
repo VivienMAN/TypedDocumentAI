@@ -4,7 +4,7 @@
 
 [Documentation complète en anglais](README.md)
 
-> **Première version prévue : `1.0.0`.** La compilation Linux, les 124 tests C# hors ligne et la génération des quatre packages avec symboles ont été vérifiés localement. Les Actions GitHub et les appels payants aux fournisseurs restent à exécuter. La publication NuGet attend la création de ton compte. Voir la [validation](docs/VALIDATION.md) et le [guide de publication](docs/RELEASING.md).
+> **Première version prévue : `1.0.0`.** La compilation Linux, les 124 tests C# hors ligne et la génération des quatre packages avec symboles ont été vérifiés localement. La CI, la publication et les appels payants aux fournisseurs restent à exécuter. La publication NuGet attend la création de ton compte. Voir la [validation](docs/VALIDATION.md) et le [guide de publication](docs/RELEASING.md).
 
 ## Architecture
 

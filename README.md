@@ -4,7 +4,7 @@
 
 [Français](README.fr.md) · [Architecture](docs/ARCHITECTURE.md) · [Add a provider](docs/EXTENDING.md) · [V1 migration](docs/MIGRATING-V1.md)
 
-> **First release target: `1.0.0`.** Local Linux verification passed: compilation, 124 offline C# tests and creation of the four NuGet packages with symbols. See [validation status](docs/VALIDATION.md). GitHub Actions and paid provider tests have not been run; NuGet publication awaits account setup. [Manual publishing guide](docs/RELEASING.md).
+> **First release target: `1.0.0`.** Local Linux verification passed: compilation, 124 offline C# tests and creation of the four NuGet packages with symbols. See [validation status](docs/VALIDATION.md). Project CI, publication and paid provider tests have not been run; NuGet publication awaits account setup. [Manual publishing guide](docs/RELEASING.md).
 
 ## One client, explicit capabilities
 

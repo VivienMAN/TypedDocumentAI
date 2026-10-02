@@ -24,4 +24,4 @@ The instructions request faithful extraction and discourage following instructio
 
 POST replays can duplicate paid processing, so retries are disabled until explicitly configured. Cancellation does not prove the provider stopped processing. No exactly-once guarantee is made.
 
-The repository pins direct package versions and action commits, enables NuGet audit and includes Dependabot. These controls still require a successful restore/audit and ongoing review; source delivery is not proof that dependencies are vulnerability-free. Normal CI receives no provider/publishing keys. Only trusted commits on main should be published through the manual release workflow and its OIDC publishing environment.
+The repository pins direct package versions and action commits, enables NuGet audit and requires manual dependency/action revision maintenance. These controls still require a successful restore/audit and ongoing review; source delivery is not proof that dependencies are vulnerability-free. Normal CI receives no provider/publishing keys. Only trusted commits on main should be published through the manual release workflow and its OIDC publishing environment.

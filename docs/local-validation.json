@@ -22,7 +22,9 @@
   "version_override_verified": "1.0.1",
   "local_feed_consumer_passed": true,
   "workflow_linter": "actionlint 1.7.12",
-  "github_actions_executed": false,
   "nuget_published": false,
-  "live_provider_calls": false
+  "live_provider_calls": false,
+  "project_workflows_executed": false,
+  "dependabot_initial_scans_started": 2,
+  "dependabot_schedule_removed": true
 }

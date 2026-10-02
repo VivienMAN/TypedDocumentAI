@@ -20,9 +20,13 @@ A machine-readable [local verification report](local-validation.json) records th
 
 ## Not executed
 
-- GitHub Actions, including the Windows matrix job.
+- Project CI, publication and live smoke workflows, including the Windows matrix job.
 - NuGet authentication, public package uploads, symbol-server indexing and public release creation.
 - Live Mistral or OpenAI calls; no provider credentials were used and no paid API request was made.
 - An independent security audit, binary compatibility baseline or extraction-accuracy benchmark.
 
 NuGet publication awaits creation of the owner's account and its Trusted Publishing policy. The first manual publication must pass Linux and Windows verification before uploading. See [RELEASING.md](RELEASING.md) for the exact setup and recovery procedure. A local test or workflow file is not evidence that a remote run succeeded.
+
+## GitHub setup observation
+
+The initial push included the archive’s Dependabot schedule, which automatically started two GitHub dependency-update scans. The schedule was then removed and cancellation was requested for the active scans to keep automation manual. None of the repository CI, release or paid smoke workflows was launched. Any completed dependency scan is not evidence that C# tests or publication ran.
