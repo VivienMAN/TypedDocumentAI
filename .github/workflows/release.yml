@@ -25,7 +25,7 @@ jobs:
       source_sha: ${{ steps.plan.outputs.source_sha }}
       completed: ${{ steps.plan.outputs.completed }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -60,7 +60,7 @@ jobs:
       PACKAGE_VERSION: ${{ needs.plan.outputs.version }}
       SOURCE_SHA: ${{ needs.plan.outputs.source_sha }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ needs.plan.outputs.source_sha }}
